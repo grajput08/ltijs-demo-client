@@ -1,36 +1,35 @@
-import React from 'react'
-import Home from './pages/home'
-import Grades from './pages/grades'
-import NamesAndRoles from './pages/namesandroles'
-import DeepLink from './pages/deeplink'
-import LandingPage from './pages/landingPage'
+import React from "react";
+import Home from "./pages/home";
+import Grades from "./pages/grades";
+import NamesAndRoles from "./pages/namesandroles";
+import DeepLink from "./pages/deeplink";
+import LandingPage from "./pages/landingPage";
+import SubmittedAudio from "./pages/submitted-audio";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route
-} from 'react-router-dom'
-
-export default function App () {
+export default function App() {
   return (
     <Router>
       <Switch>
-        <Route exact path='/'>
+        <Route exact path="/">
           <Home />
         </Route>
-        <Route path='/grades'>
+        <Route path="/grades">
           <Grades />
         </Route>
-        <Route path='/namesandroles'>
+        <Route path="/namesandroles">
           <NamesAndRoles />
         </Route>
-        <Route path='/deeplink'>
+        <Route path="/deeplink">
           <DeepLink />
         </Route>
-        <Route path='/nolti'>
+        <Route path="/submitted-audio">
+          <SubmittedAudio />
+        </Route>
+        <Route path="/nolti">
           <LandingPage />
         </Route>
       </Switch>
     </Router>
-  )
+  );
 }

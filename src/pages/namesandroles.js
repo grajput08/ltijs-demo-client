@@ -1,106 +1,112 @@
-import React, { useState, useEffect } from 'react'
-import {
-  Link
-} from 'react-router-dom'
-import CssBaseline from '@material-ui/core/CssBaseline'
-import Grid from '@material-ui/core/Grid'
-import { makeStyles } from '@material-ui/core/styles'
-import Container from '@material-ui/core/Container'
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import CssBaseline from "@material-ui/core/CssBaseline";
+import Grid from "@material-ui/core/Grid";
+import { makeStyles } from "@material-ui/core/styles";
+import Container from "@material-ui/core/Container";
 
-import MUIDataTable from 'mui-datatables'
-import HomeIcon from '@material-ui/icons/Home'
-import Fab from '@material-ui/core/Fab'
-import ky from 'ky'
+import MUIDataTable from "mui-datatables";
+import HomeIcon from "@material-ui/icons/Home";
+import Fab from "@material-ui/core/Fab";
+import ky from "ky";
 
-import { useSnackbar } from 'notistack'
+import { useSnackbar } from "notistack";
 
-const useStyles = makeStyles(theme => ({
-  '@global': {
+const useStyles = makeStyles((theme) => ({
+  "@global": {
     body: {
-      backgroundColor: theme.palette.common.white
-    }
+      backgroundColor: theme.palette.common.white,
+    },
   },
   paper: {
-    overflow: 'hidden',
-    width: '100%',
-    display: 'flex',
-    justifyContent: 'center'
+    overflow: "hidden",
+    width: "100%",
+    display: "flex",
+    justifyContent: "center",
   },
   fab: {
-    marginTop: theme.spacing(4)
+    marginTop: theme.spacing(4),
   },
   btnDiv: {
-    display: 'flex',
-    justifyContent: 'center'
+    display: "flex",
+    justifyContent: "center",
   },
   logodiv: {
     marginBottom: theme.spacing(8),
-    backgroundColor: 'transparent '
+    backgroundColor: "transparent ",
   },
   logo: {
-    cursor: 'pointer'
+    cursor: "pointer",
   },
   margin: {
     marginTop: theme.spacing(4),
-    backgroundColor: '#013b6c'
+    backgroundColor: "#013b6c",
   },
   table: {
-    marginTop: '10%'
+    marginTop: "10%",
   },
   home: {
-    backgroundColor: '#013b6c',
-    position: 'fixed',
-    bottom: '1vh',
-    left: '1vh'
-  }
-}))
+    backgroundColor: "#013b6c",
+    position: "fixed",
+    bottom: "1vh",
+    left: "1vh",
+  },
+}));
 
-export default function App () {
-  const classes = useStyles()
-  const { enqueueSnackbar } = useSnackbar()
-  const [dataset, setDataset] = useState()
+export default function App() {
+  const classes = useStyles();
+  const { enqueueSnackbar } = useSnackbar();
+  const [dataset, setDataset] = useState();
 
   const getLtik = () => {
-    const searchParams = new URLSearchParams(window.location.search)
-    const ltik = searchParams.get('ltik')
-    if (!ltik) throw new Error('Missing lti key.')
-    return ltik
-  }
+    const searchParams = new URLSearchParams(window.location.search);
+    const ltik = searchParams.get("ltik");
+    if (!ltik) throw new Error("Missing lti key.");
+    return ltik;
+  };
 
   const errorPrompt = async (message) => {
-    enqueueSnackbar(message, { variant: 'error' })
-  }
+    enqueueSnackbar(message, { variant: "error" });
+  };
 
   // Retrieves resource dataset
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const members = await ky.get('/members', { credentials: 'include', headers: { Authorization: 'Bearer ' + getLtik() } }).json()
-        console.log(members)
-        setDataset(members)
+        const members = await ky
+          .get(
+            "https://be54-2409-40c0-11b2-2313-fdcf-4671-55d8-2e77.ngrok-free.app/members",
+            {
+              credentials: "include",
+              headers: { Authorization: "Bearer " + getLtik() },
+            }
+          )
+          .json();
+        console.log(members);
+        setDataset(members);
       } catch (err) {
-        console.log(err)
-        errorPrompt('Failed retrieving members! ' + err)
+        console.log(err);
+        errorPrompt("Failed retrieving members! " + err.message);
       }
-    }
-    fetchMembers()
-  }, [])
+    };
+    fetchMembers();
+  }, []);
 
   // Configuring data table
   const columns = [
     {
-      name: 'name',
-      label: 'Name'
+      name: "name",
+      label: "Name",
     },
     {
-      name: 'roles',
-      label: 'Role'
-    }
-  ]
+      name: "roles",
+      label: "Role",
+    },
+  ];
 
   const options = {
-    filterType: 'checkbox',
-    selectableRows: 'none',
+    filterType: "checkbox",
+    selectableRows: "none",
     disableToolbarSelect: true,
     download: false,
     print: false,
@@ -109,17 +115,17 @@ export default function App () {
     filter: false,
     selectableRowsOnClick: false,
     rowsPerPage: 5,
-    responsive: 'scrollFullHeight'
-  }
+    responsive: "scrollFullHeight",
+  };
 
   return (
-    <Container component='main' maxWidth='lg'>
+    <Container component="main" maxWidth="lg">
       <CssBaseline />
       <div className={classes.paper}>
         <Grid container>
           <Grid item xs={12} className={classes.table}>
             <MUIDataTable
-              title='Members:'
+              title="Members:"
               data={dataset}
               columns={columns}
               options={options}
@@ -132,14 +138,14 @@ export default function App () {
       </Box> */}
       <Link
         to={{
-          pathname: '/',
-          search: document.location.search
+          pathname: "/",
+          search: document.location.search,
         }}
       >
-        <Fab color='primary' aria-label='home' className={classes.home}>
+        <Fab color="primary" aria-label="home" className={classes.home}>
           <HomeIcon />
         </Fab>
       </Link>
     </Container>
-  )
+  );
 }
