@@ -3,9 +3,11 @@ import CssBaseline from "@material-ui/core/CssBaseline";
 import Grid from "@material-ui/core/Grid";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
+import { Link } from "react-router-dom";
+import Fab from "@material-ui/core/Fab";
+import HomeIcon from "@material-ui/icons/Home";
 
 import MUIDataTable from "mui-datatables";
-import Fab from "@material-ui/core/Fab";
 import ky from "ky";
 import NavigationIcon from "@material-ui/icons/Navigation";
 import $ from "jquery";
@@ -45,6 +47,12 @@ const useStyles = makeStyles((theme) => ({
   table: {
     marginTop: "10%",
   },
+  home: {
+    backgroundColor: "#013b6c",
+    position: "fixed",
+    bottom: "1vh",
+    left: "1vh",
+  },
 }));
 
 export default function App() {
@@ -61,6 +69,12 @@ export default function App() {
     return ltik;
   };
 
+  const successPrompt = async (message) => {
+    enqueueSnackbar(message, {
+      variant: "success",
+    });
+  };
+
   const errorPrompt = async (message) => {
     enqueueSnackbar(message, { variant: "error" });
   };
@@ -71,7 +85,7 @@ export default function App() {
       try {
         const audioRecords = await ky
           .get(
-            "https://be54-2409-40c0-11b2-2313-fdcf-4671-55d8-2e77.ngrok-free.app/audio-records",
+            "https://be54-2409-40c0-11b2-2313-fdcf-4671-55d8-2e77.ngrok-free.app/resources",
             {
               credentials: "include",
               headers: { Authorization: "Bearer " + getLtik() },
@@ -91,20 +105,19 @@ export default function App() {
   const submit = async () => {
     try {
       if (resource === false) {
-        errorPrompt("Please select a resource.");
+        errorPrompt("Please select a resource");
         return;
       }
-      const form = await ky
-        .post(
-          "https://be54-2409-40c0-11b2-2313-fdcf-4671-55d8-2e77.ngrok-free.app/submitted",
-          {
-            credentials: "include",
-            json: dataset[resource],
-            headers: { Authorization: "Bearer " + getLtik() },
-          }
-        )
-        .text();
-      $("body").append(form);
+      await ky.post(
+        "https://be54-2409-40c0-11b2-2313-fdcf-4671-55d8-2e77.ngrok-free.app/submit/audio",
+        {
+          credentials: "include",
+          json: dataset[resource],
+          headers: { Authorization: "Bearer " + getLtik() },
+        }
+      );
+
+      successPrompt("Resource successfully submitted!");
     } catch (err) {
       console.log(err);
       errorPrompt("Failed creating deep link! " + err);
@@ -127,12 +140,18 @@ export default function App() {
     },
     {
       name: "link",
-      label: "URL",
+      label: "Audio",
       options: {
         customBodyRender: (value) => (
-          <a href={value} target="_blank" rel="noopener noreferrer">
-            {value}
-          </a>
+          <div style={{ minWidth: "250px" }}>
+            <audio controls style={{ width: "100%", marginBottom: "5px" }}>
+              <source src={value} type="audio/mpeg" />
+              Your browser does not support the audio element.
+            </audio>
+            <a href={value} target="_blank" rel="noopener noreferrer">
+              Download Audio
+            </a>
+          </div>
         ),
       },
     },
@@ -185,9 +204,16 @@ export default function App() {
           </Grid>
         </Grid>
       </div>
-      {/* <Box mt={8}>
-        <Copyright />
-      </Box> */}
+      <Link
+        to={{
+          pathname: "/",
+          search: document.location.search,
+        }}
+      >
+        <Fab color="primary" aria-label="home" className={classes.home}>
+          <HomeIcon />
+        </Fab>
+      </Link>
     </Container>
   );
 }
