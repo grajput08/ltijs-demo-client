@@ -4,6 +4,7 @@ import Grades from "./pages/grades";
 import DeepLink from "./pages/deeplink";
 import LandingPage from "./pages/landingPage";
 import Dashboard from "./pages/dashboard";
+import NameRoles from "./pages/nameRoles";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 export default function App() {
@@ -28,6 +29,9 @@ export default function App() {
           </Route>
           <Route path="/dashboard">
             <Dashboard />
+          </Route>
+          <Route path="/nameRoles">
+            <NameRoles />
           </Route>
           <Route path="/nolti">
             <LandingPage />

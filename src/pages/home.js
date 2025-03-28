@@ -9,6 +9,7 @@ import Container from "@material-ui/core/Container";
 import Fab from "@material-ui/core/Fab";
 import GradeIcon from "@material-ui/icons/Grade";
 import LinkIcon from "@material-ui/icons/Link";
+import PersonIcon from "@material-ui/icons/Person";
 import Typography from "@material-ui/core/Typography";
 import Tooltip from "@material-ui/core/Tooltip";
 
@@ -246,6 +247,18 @@ export default function App() {
             >
               <Fab color="primary" aria-label="add" className={classes.margin}>
                 <GradeIcon />
+              </Fab>
+            </Link>
+          </Tooltip>
+          <Tooltip title="Name and Roles Service" aria-label="nameRoles">
+            <Link
+              to={{
+                pathname: "/nameRoles",
+                search: document.location.search,
+              }}
+            >
+              <Fab color="primary" aria-label="add" className={classes.margin}>
+                <PersonIcon />
               </Fab>
             </Link>
           </Tooltip>
