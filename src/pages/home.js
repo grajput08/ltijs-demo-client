@@ -76,6 +76,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 export default function App() {
   const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
@@ -101,13 +103,10 @@ export default function App() {
     const getInfo = async () => {
       try {
         const launchInfo = await ky
-          .get(
-            "https://be54-2409-40c0-11b2-2313-fdcf-4671-55d8-2e77.ngrok-free.app/info",
-            {
-              credentials: "include",
-              headers: { Authorization: "Bearer " + getLtik() },
-            }
-          )
+          .get(`${API_BASE_URL}/info`, {
+            credentials: "include",
+            headers: { Authorization: "Bearer " + getLtik() },
+          })
           .json();
         setInfo(launchInfo);
       } catch (err) {

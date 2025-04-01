@@ -10,9 +10,9 @@ import HomeIcon from "@material-ui/icons/Home";
 import MUIDataTable from "mui-datatables";
 import ky from "ky";
 import NavigationIcon from "@material-ui/icons/Navigation";
-import $ from "jquery";
-
 import { useSnackbar } from "notistack";
+
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 const useStyles = makeStyles((theme) => ({
   "@global": {
@@ -84,13 +84,10 @@ export default function App() {
     const fetchAudioRecords = async () => {
       try {
         const audioRecords = await ky
-          .get(
-            "https://be54-2409-40c0-11b2-2313-fdcf-4671-55d8-2e77.ngrok-free.app/resources",
-            {
-              credentials: "include",
-              headers: { Authorization: "Bearer " + getLtik() },
-            }
-          )
+          .get(`${API_BASE_URL}/resources`, {
+            credentials: "include",
+            headers: { Authorization: "Bearer " + getLtik() },
+          })
           .json();
         setDataset(audioRecords);
       } catch (err) {
@@ -108,14 +105,11 @@ export default function App() {
         errorPrompt("Please select a resource");
         return;
       }
-      await ky.post(
-        "https://be54-2409-40c0-11b2-2313-fdcf-4671-55d8-2e77.ngrok-free.app/submit/audio",
-        {
-          credentials: "include",
-          json: dataset[resource],
-          headers: { Authorization: "Bearer " + getLtik() },
-        }
-      );
+      await ky.post(`${API_BASE_URL}/submit/audio`, {
+        credentials: "include",
+        json: dataset[resource],
+        headers: { Authorization: "Bearer " + getLtik() },
+      });
 
       successPrompt("Resource successfully submitted!");
     } catch (err) {

@@ -67,6 +67,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 export default function App() {
   const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
@@ -113,14 +115,11 @@ export default function App() {
         grade: grade,
       };
 
-      await ky.post(
-        "https://be54-2409-40c0-11b2-2313-fdcf-4671-55d8-2e77.ngrok-free.app/grade",
-        {
-          credentials: "include",
-          json: body,
-          headers: { Authorization: "Bearer " + getLtik() },
-        }
-      );
+      await ky.post(`${API_BASE_URL}/grade`, {
+        credentials: "include",
+        json: body,
+        headers: { Authorization: "Bearer " + getLtik() },
+      });
       successPrompt(grade);
     } catch (err) {
       console.log(err);

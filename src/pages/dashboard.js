@@ -4,7 +4,6 @@ import Grid from "@material-ui/core/Grid";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
 import MUIDataTable from "mui-datatables";
-import TablePagination from "@material-ui/core/TablePagination";
 import { useSnackbar } from "notistack";
 import ky from "ky";
 import TextField from "@material-ui/core/TextField";
@@ -89,6 +88,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 export default function SubmittedAudio() {
   const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
@@ -113,13 +114,10 @@ export default function SubmittedAudio() {
   const fetchSubmissions = async (page = 1) => {
     try {
       const response = await ky
-        .get(
-          `https://be54-2409-40c0-11b2-2313-fdcf-4671-55d8-2e77.ngrok-free.app/submitted/audio?page=${page}&limit=10`,
-          {
-            credentials: "include",
-            headers: { Authorization: "Bearer " + getLtik() },
-          }
-        )
+        .get(`${API_BASE_URL}/submitted/audio?page=${page}&limit=10`, {
+          credentials: "include",
+          headers: { Authorization: "Bearer " + getLtik() },
+        })
         .json();
 
       const transformedData = {
@@ -231,6 +229,14 @@ export default function SubmittedAudio() {
     expandableRows: true,
     expandableRowsHeader: false,
     expandableRowsOnClick: true,
+    serverSide: true,
+    count: data.pagination.totalItems,
+    page: data.pagination.currentPage - 1,
+    onTableChange: (action, tableState) => {
+      if (action === "changePage") {
+        fetchSubmissions(tableState.page + 1);
+      }
+    },
     renderExpandableRow: (rowData, rowMeta) => {
       const submission = data.items[rowMeta.dataIndex];
 
@@ -337,15 +343,6 @@ export default function SubmittedAudio() {
     },
   };
 
-  const handlePageChange = (event, newPage) => {
-    fetchSubmissions(newPage + 1);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    // Not implementing this since the API has fixed page size
-    // But including it as it's required by TablePagination
-  };
-
   const [feedback, setFeedback] = useState({});
   const [submittedFeedback, setSubmittedFeedback] = useState({});
 
@@ -378,16 +375,13 @@ export default function SubmittedAudio() {
         throw new Error("Submission ID not found");
       }
 
-      await ky.post(
-        `https://be54-2409-40c0-11b2-2313-fdcf-4671-55d8-2e77.ngrok-free.app/feedback`,
-        {
-          json: {
-            submissionId: submissionId,
-            feedback: feedback[rowIndex],
-          },
-          headers: { Authorization: "Bearer " + getLtik() },
-        }
-      );
+      await ky.post(`${API_BASE_URL}/feedback`, {
+        json: {
+          submissionId: submissionId,
+          feedback: feedback[rowIndex],
+        },
+        headers: { Authorization: "Bearer " + getLtik() },
+      });
       setSubmittedFeedback({
         ...submittedFeedback,
         [rowIndex]: true,
@@ -414,15 +408,6 @@ export default function SubmittedAudio() {
               data={data.items}
               columns={columns}
               options={options}
-            />
-            <TablePagination
-              component="div"
-              count={data.pagination.totalItems}
-              page={data.pagination.currentPage - 1}
-              onPageChange={handlePageChange}
-              rowsPerPage={10}
-              rowsPerPageOptions={[10]}
-              onRowsPerPageChange={handleChangeRowsPerPage}
             />
           </Grid>
         </Grid>
