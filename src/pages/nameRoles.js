@@ -74,13 +74,10 @@ export default function App() {
     const fetchMembers = async () => {
       try {
         const members = await ky
-          .get(
-            "https://be54-2409-40c0-11b2-2313-fdcf-4671-55d8-2e77.ngrok-free.app/members",
-            {
-              credentials: "include",
-              headers: { Authorization: "Bearer " + getLtik() },
-            }
-          )
+          .get(`${process.env.REACT_APP_API_BASE_URL}/members`, {
+            credentials: "include",
+            headers: { Authorization: "Bearer " + getLtik() },
+          })
           .json();
         console.log(members);
         setDataset(members);
