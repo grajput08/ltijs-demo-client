@@ -8,6 +8,9 @@ import Paper from "@material-ui/core/Paper";
 import AudiotrackIcon from "@material-ui/icons/Audiotrack";
 import { useSnackbar } from "notistack";
 import ky from "ky";
+import { Link } from "react-router-dom";
+import Fab from "@material-ui/core/Fab";
+import HomeIcon from "@material-ui/icons/Home";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -33,6 +36,25 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(2),
     backgroundColor: theme.palette.grey[100],
   },
+  buttonProgress: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    marginTop: -12,
+    marginLeft: -12,
+  },
+  wrapper: {
+    position: "relative",
+    width: "100%",
+    marginTop: theme.spacing(3),
+    marginBottom: theme.spacing(2),
+  },
+  home: {
+    backgroundColor: "#013b6c",
+    position: "fixed",
+    bottom: "1vh",
+    left: "1vh",
+  },
 }));
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
@@ -41,6 +63,8 @@ export default function AudioSubmission() {
   const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
   const [selectedAudio, setSelectedAudio] = useState(null);
+  const [s3Url, setS3Url] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const getLtik = () => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -57,19 +81,24 @@ export default function AudioSubmission() {
       return;
     }
 
+    setIsLoading(true);
     const formData = new FormData();
     formData.append("audio", selectedAudio);
 
     try {
-      await ky.post(`${API_BASE_URL}/upload/audio`, {
-        body: formData,
-        credentials: "include",
-        headers: {
-          Authorization: "Bearer " + getLtik(),
-        },
-      });
+      const response = await ky
+        .post(`${API_BASE_URL}/upload/audio`, {
+          body: formData,
+          credentials: "include",
+          headers: {
+            Authorization: "Bearer " + getLtik(),
+          },
+        })
+        .json();
+      console.log("response", response);
 
       enqueueSnackbar("Audio submitted successfully!", { variant: "success" });
+      setS3Url(response.fileUrl);
       setSelectedAudio(null);
     } catch (error) {
       console.error(error);
@@ -77,6 +106,8 @@ export default function AudioSubmission() {
       enqueueSnackbar("Failed to submit audio: " + error.message, {
         variant: "error",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -127,18 +158,62 @@ export default function AudioSubmission() {
             </div>
           )}
 
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            color="primary"
-            className={classes.submit}
-            disabled={!selectedAudio}
-          >
-            Submit Audio
-          </Button>
+          {s3Url && (
+            <div className={classes.selectedFile}>
+              <Typography variant="subtitle1">Uploaded Audio:</Typography>
+              <audio className={classes.audioPlayer} controls src={s3Url} />
+              <Typography
+                variant="body2"
+                style={{
+                  wordBreak: "break-all",
+                  backgroundColor: "#f5f5f5",
+                  padding: "8px",
+                  borderRadius: "4px",
+                  marginTop: "8px",
+                }}
+              >
+                {s3Url}
+              </Typography>
+              <Button
+                variant="contained"
+                color="secondary"
+                size="small"
+                style={{ marginTop: "8px" }}
+                onClick={() => {
+                  navigator.clipboard.writeText(s3Url);
+                  enqueueSnackbar("URL copied to clipboard!", {
+                    variant: "success",
+                  });
+                }}
+              >
+                Copy URL
+              </Button>
+            </div>
+          )}
+
+          <div className={classes.wrapper}>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              color="primary"
+              disabled={!selectedAudio || isLoading}
+            >
+              {isLoading ? "Uploading..." : "Submit Audio"}
+            </Button>
+          </div>
         </form>
       </Paper>
+      <Link
+        to={{
+          pathname: "/",
+          search: document.location.search,
+        }}
+      >
+        <Fab color="primary" aria-label="home" className={classes.home}>
+          <HomeIcon />
+        </Fab>
+      </Link>
     </Container>
   );
 }

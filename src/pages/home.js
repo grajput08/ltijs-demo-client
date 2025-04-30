@@ -13,6 +13,7 @@ import PersonIcon from "@material-ui/icons/Person";
 import Typography from "@material-ui/core/Typography";
 import Tooltip from "@material-ui/core/Tooltip";
 import AudiotrackIcon from "@material-ui/icons/Audiotrack";
+import QueueMusicIcon from "@material-ui/icons/QueueMusic";
 
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -283,6 +284,18 @@ export default function App() {
             >
               <Fab color="primary" aria-label="add" className={classes.margin}>
                 <AudiotrackIcon />
+              </Fab>
+            </Link>
+          </Tooltip>
+          <Tooltip title="Audio List" aria-label="audioList">
+            <Link
+              to={{
+                pathname: "/audioList",
+                search: document.location.search,
+              }}
+            >
+              <Fab color="primary" aria-label="add" className={classes.margin}>
+                <QueueMusicIcon />
               </Fab>
             </Link>
           </Tooltip>

@@ -6,6 +6,7 @@ import Container from "@material-ui/core/Container";
 import { Link } from "react-router-dom";
 import Fab from "@material-ui/core/Fab";
 import HomeIcon from "@material-ui/icons/Home";
+import Button from "@material-ui/core/Button";
 
 import MUIDataTable from "mui-datatables";
 import ky from "ky";
@@ -61,6 +62,8 @@ export default function App() {
   const [resource, setResource] = useState(false);
   const [dataset, setDataset] = useState([]);
   const [selected, setSelected] = useState([]);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const getLtik = () => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -118,7 +121,77 @@ export default function App() {
     }
   };
 
-  // Configuring data table
+  // Add this function to get audio duration
+  const getAudioDuration = (file) => {
+    return new Promise((resolve) => {
+      const audio = new Audio();
+      audio.src = URL.createObjectURL(file);
+      audio.addEventListener("loadedmetadata", () => {
+        const minutes = Math.floor(audio.duration / 60);
+        const seconds = Math.floor(audio.duration % 60);
+        resolve(
+          `${minutes.toString().padStart(2, "0")}:${seconds
+            .toString()
+            .padStart(2, "0")}`
+        );
+        URL.revokeObjectURL(audio.src);
+      });
+    });
+  };
+
+  // Update the handleFileUpload function
+  const handleFileUpload = async (file) => {
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("audio", file);
+
+    try {
+      const response = await ky
+        .post(`${API_BASE_URL}/upload/audio`, {
+          body: formData,
+          credentials: "include",
+          headers: {
+            Authorization: "Bearer " + getLtik(),
+          },
+        })
+        .json();
+
+      // Get audio duration
+      const duration = await getAudioDuration(file);
+
+      // Get the next index
+      const index = dataset.length + 1;
+
+      // Add the new record to the dataset
+      const newRecord = {
+        title: `Audio Record${index}`,
+        duration: duration,
+        artist: `Artist${index}`,
+        link: response.fileUrl,
+      };
+      setDataset([...dataset, newRecord]);
+      successPrompt("Audio uploaded successfully!");
+    } catch (error) {
+      console.error(error);
+      errorPrompt("Failed to upload audio: " + error.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Add this function to handle copying to clipboard
+  const copyToClipboard = (text) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        successPrompt("URL copied to clipboard!");
+      })
+      .catch((err) => {
+        errorPrompt("Failed to copy URL: " + err.message);
+      });
+  };
+
+  // Modify the columns configuration
   const columns = [
     {
       name: "title",
@@ -136,21 +209,94 @@ export default function App() {
       name: "link",
       label: "Audio",
       options: {
-        customBodyRender: (value) => (
-          <div style={{ minWidth: "250px" }}>
-            <audio controls style={{ width: "100%", marginBottom: "5px" }}>
-              <source src={value} type="audio/mpeg" />
-              Your browser does not support the audio element.
-            </audio>
-            <a href={value} target="_blank" rel="noopener noreferrer">
-              Download Audio
-            </a>
-          </div>
-        ),
+        customBodyRender: (value, tableMeta) => {
+          if (value) {
+            return (
+              <div style={{ minWidth: "250px" }}>
+                <audio controls style={{ width: "100%", marginBottom: "5px" }}>
+                  <source src={value} type="audio/mpeg" />
+                  Your browser does not support the audio element.
+                </audio>
+                <div
+                  style={{
+                    padding: "4px",
+                    backgroundColor: "#f5f5f5",
+                    borderRadius: "4px",
+                    marginBottom: "5px",
+                    wordBreak: "break-all",
+                    fontSize: "11px",
+                  }}
+                >
+                  {value}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "4px",
+                    marginBottom: "5px",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    size="small"
+                    href={value}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      minWidth: "90px",
+                      padding: "2px 8px",
+                      fontSize: "11px",
+                    }}
+                  >
+                    Download
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    size="small"
+                    onClick={() => copyToClipboard(value)}
+                    style={{
+                      minWidth: "90px",
+                      padding: "2px 8px",
+                      fontSize: "11px",
+                    }}
+                  >
+                    Copy Link
+                  </Button>
+                </div>
+              </div>
+            );
+          } else {
+            return (
+              <div style={{ minWidth: "250px" }}>
+                <input
+                  accept="audio/*"
+                  style={{ display: "none" }}
+                  id={`audio-upload-${tableMeta.rowIndex}`}
+                  type="file"
+                  onChange={(e) => handleFileUpload(e.target.files[0])}
+                />
+                <label htmlFor={`audio-upload-${tableMeta.rowIndex}`}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    component="span"
+                    disabled={isUploading}
+                  >
+                    {isUploading ? "Uploading..." : "Upload Audio"}
+                  </Button>
+                </label>
+              </div>
+            );
+          }
+        },
       },
     },
   ];
 
+  // Modify the options configuration
   const options = {
     filterType: "checkbox",
     selectableRows: "single",
@@ -169,6 +315,29 @@ export default function App() {
     rowsSelected: selected,
     rowsPerPage: 5,
     responsive: "scrollFullHeight",
+    customToolbar: () => {
+      return (
+        <div>
+          <input
+            accept="audio/*"
+            style={{ display: "none" }}
+            id="upload-audio-file"
+            type="file"
+            onChange={(e) => handleFileUpload(e.target.files[0])}
+          />
+          <label htmlFor="upload-audio-file">
+            <Button
+              variant="contained"
+              color="primary"
+              component="span"
+              disabled={isUploading}
+            >
+              {isUploading ? "Uploading..." : "Upload File"}
+            </Button>
+          </label>
+        </div>
+      );
+    },
   };
 
   return (
