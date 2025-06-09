@@ -120,17 +120,22 @@ export default function SubmittedAudio() {
         })
         .json();
 
+      console.log("transformedData", response.submissions, response);
+
       const transformedData = {
         items: response.submissions.map((item) => ({
           id: item.id,
-          title: item.submission.title,
-          userInfo: item.user,
-          duration: item.submission.duration.formatted,
-          artist: item.submission.artist,
-          transcript: item.submission.transcript,
-          feedback: item.submission.feedback,
-          link: item.submission.link,
-          createdat: item.submission.createdAt,
+          title: item.title,
+          userInfo: {
+            name: item.items?.[0]?.userInfo?.user_id || "N/A",
+            id: item.userid,
+          },
+          duration: item.items?.[0]?.custom?.duration || "N/A",
+          artist: item.items?.[0]?.custom?.artist || "N/A",
+          transcript: item.items?.[0]?.custom?.transcript || null,
+          feedback: item.feedback,
+          link: item.link || item.items?.[0]?.custom?.resource_link_title,
+          createdat: item.createdat,
         })),
         pagination: response.pagination,
         isInstructor: response.isInstructor,
@@ -334,6 +339,49 @@ export default function SubmittedAudio() {
                     <h4 className={classes.sectionTitle}>Full Transcript</h4>
                     {renderTranscript(submission.transcript)}
                   </div>
+
+                  {/* Grade Submission Section */}
+                  <div
+                    className={classes.feedbackSection}
+                    style={{ width: "100%", marginTop: "10px" }}
+                  >
+                    <h4 className={classes.sectionTitle}>Grade Submission</h4>
+                    {data.isInstructor ? (
+                      <>
+                        <TextField
+                          type="number"
+                          inputProps={{ min: 0, max: 100 }}
+                          label="Grade (%)"
+                          variant="outlined"
+                          fullWidth
+                          value={grades[rowMeta.dataIndex] || ""}
+                          onChange={(e) =>
+                            handleGradeChange(e, rowMeta.dataIndex)
+                          }
+                          style={{ marginBottom: "10px" }}
+                        />
+                        <IconButton
+                          onClick={() => handleSaveGrade(rowMeta.dataIndex)}
+                          className={classes.sendButton}
+                          disabled={submittedGrades[rowMeta.dataIndex]}
+                        >
+                          <SendIcon style={{ marginRight: "8px" }} />
+                          <span>
+                            {submittedGrades[rowMeta.dataIndex]
+                              ? "Sent"
+                              : "Send"}
+                          </span>
+                        </IconButton>
+                      </>
+                    ) : (
+                      <div style={{ padding: "10px" }}>
+                        {submission.grade !== undefined &&
+                        submission.grade !== null
+                          ? `${submission.grade} / 100`
+                          : "No grade provided yet"}
+                      </div>
+                    )}
+                  </div>
                 </Grid>
               </Grid>
             </div>
@@ -345,14 +393,22 @@ export default function SubmittedAudio() {
 
   const [feedback, setFeedback] = useState({});
   const [submittedFeedback, setSubmittedFeedback] = useState({});
+  const [grades, setGrades] = useState({});
+  const [submittedGrades, setSubmittedGrades] = useState({});
 
   useEffect(() => {
     if (data.items.length > 0) {
       const initialSubmittedState = {};
+      const initialGradesState = {};
+      const initialSubmittedGradesState = {};
       data.items.forEach((item, index) => {
         initialSubmittedState[index] = !!item.feedback;
+        initialGradesState[index] = item.grade || "";
+        initialSubmittedGradesState[index] = !!item.grade;
       });
       setSubmittedFeedback(initialSubmittedState);
+      setGrades(initialGradesState);
+      setSubmittedGrades(initialSubmittedGradesState);
     }
   }, [data.items]);
 
@@ -390,6 +446,39 @@ export default function SubmittedAudio() {
     } catch (err) {
       console.error(err);
       enqueueSnackbar("Failed to save feedback: " + err.message, {
+        variant: "error",
+      });
+    }
+  };
+
+  const handleGradeChange = (event, rowIndex) => {
+    setGrades({
+      ...grades,
+      [rowIndex]: event.target.value,
+    });
+    setSubmittedGrades({
+      ...submittedGrades,
+      [rowIndex]: false,
+    });
+  };
+
+  const handleSaveGrade = async (rowIndex) => {
+    try {
+      await ky.post(`${API_BASE_URL}/grade`, {
+        json: {
+          grade: parseInt(grades[rowIndex]),
+          userId: data.items[rowIndex]?.userInfo?.id,
+        },
+        headers: { Authorization: "Bearer " + getLtik() },
+      });
+      setSubmittedGrades({
+        ...submittedGrades,
+        [rowIndex]: true,
+      });
+      enqueueSnackbar("Grade saved successfully", { variant: "success" });
+    } catch (err) {
+      console.error(err);
+      enqueueSnackbar("Failed to save grade: " + err.message, {
         variant: "error",
       });
     }
