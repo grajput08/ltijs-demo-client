@@ -136,6 +136,15 @@ export default function SubmittedAudio() {
           feedback: item.feedback,
           link: item.link || item.items?.[0]?.custom?.resource_link_title,
           createdat: item.createdat,
+          aiFeedback:
+            item.aiFeedback ||
+            [
+              "Pronunciation needs improvement",
+              "Rhythm and timing could be better",
+              "Overall performance shows good effort",
+              "Consider practicing with a metronome",
+              "Work on breath control",
+            ].join("\n"),
         })),
         pagination: response.pagination,
         isInstructor: response.isInstructor,
@@ -341,11 +350,13 @@ export default function SubmittedAudio() {
                   </div>
 
                   {/* Grade Submission Section */}
-                  <div
+                  {/* <div
                     className={classes.feedbackSection}
                     style={{ width: "100%", marginTop: "10px" }}
                   >
-                    <h4 className={classes.sectionTitle}>Grade Submission</h4>
+                    <h4 className={classes.sectionTitle}>
+                      AI Generated Feedback{" "}
+                    </h4>
                     {data.isInstructor ? (
                       <>
                         <TextField
@@ -381,6 +392,64 @@ export default function SubmittedAudio() {
                           : "No grade provided yet"}
                       </div>
                     )}
+                  </div> */}
+
+                  {/* AI Generated Feedback Section */}
+                  <div
+                    className={classes.feedbackSection}
+                    style={{ marginTop: "20px" }}
+                  >
+                    <h4 className={classes.sectionTitle}>
+                      AI Generated Feedback
+                    </h4>
+                    <div
+                      style={{
+                        padding: "15px",
+                        backgroundColor: "#f8f9fa",
+                        borderRadius: "8px",
+                        border: "1px solid #e0e0e0",
+                      }}
+                    >
+                      {submission.aiFeedback ? (
+                        <div style={{ lineHeight: "1.6" }}>
+                          {submission.aiFeedback.split("\n").map(
+                            (point, index) =>
+                              point.trim() && (
+                                <div
+                                  key={index}
+                                  style={{
+                                    marginBottom: "12px",
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      marginRight: "10px",
+                                      color: "#1976d2",
+                                      fontWeight: "bold",
+                                    }}
+                                  >
+                                    •
+                                  </span>
+                                  <span>{point.trim()}</span>
+                                </div>
+                              )
+                          )}
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            color: "#666",
+                            fontStyle: "italic",
+                            textAlign: "center",
+                            padding: "20px",
+                          }}
+                        >
+                          No AI feedback available yet
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </Grid>
               </Grid>
