@@ -120,7 +120,7 @@ export default function SubmittedAudio() {
         })
         .json();
 
-      console.log("transformedData", response.submissions, response);
+      console.log("transformedData", getLtik());
 
       const transformedData = {
         items: response.submissions.map((item) => ({

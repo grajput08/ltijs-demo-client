@@ -14,6 +14,7 @@ import Typography from "@material-ui/core/Typography";
 import Tooltip from "@material-ui/core/Tooltip";
 import AudiotrackIcon from "@material-ui/icons/Audiotrack";
 import QueueMusicIcon from "@material-ui/icons/QueueMusic";
+import AssignmentIcon from "@material-ui/icons/Assignment";
 
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -110,6 +111,7 @@ export default function App() {
             headers: { Authorization: "Bearer " + getLtik() },
           })
           .json();
+        console.log(launchInfo);
         setInfo(launchInfo);
       } catch (err) {
         console.log(err);
@@ -149,6 +151,16 @@ export default function App() {
                   >
                     <Table aria-label="simple table">
                       <TableBody>
+                        {info.name ? (
+                          <TableRow key="name">
+                            <TableCell component="th" scope="row">
+                              Name
+                            </TableCell>
+                            <TableCell align="right">{info.name}</TableCell>
+                          </TableRow>
+                        ) : (
+                          <></>
+                        )}
                         {info.name ? (
                           <TableRow key="name">
                             <TableCell component="th" scope="row">
@@ -205,9 +217,9 @@ export default function App() {
               )}
             </>,
             <>
-              {info.context ? (
+              {info.userAssignment ? (
                 <>
-                  <Typography variant="body1">Context</Typography>
+                  <Typography variant="body1">User Assignment</Typography>
                   <TableContainer
                     className={
                       classes.table1 + " animate__animated animate__fadeIn"
@@ -216,14 +228,101 @@ export default function App() {
                   >
                     <Table aria-label="simple table">
                       <TableBody>
-                        {Object.entries(info.context).map((value, i) => (
-                          <TableRow key={"context" + i}>
+                        {info.userAssignment.user ? (
+                          <TableRow key="userId">
                             <TableCell component="th" scope="row">
-                              {value[0]}
+                              User ID
                             </TableCell>
-                            <TableCell align="right">{value[1]}</TableCell>
+                            <TableCell align="right">
+                              {info.userAssignment.user.user_id}
+                            </TableCell>
                           </TableRow>
-                        ))}
+                        ) : (
+                          <></>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </>
+              ) : (
+                <></>
+              )}
+            </>,
+            <>
+              {info.userAssignment && info.userAssignment.canvasData ? (
+                <>
+                  <Typography variant="body1">
+                    Canvas Assignment Data
+                  </Typography>
+                  <TableContainer
+                    className={
+                      classes.table1 + " animate__animated animate__fadeIn"
+                    }
+                    component={Paper}
+                  >
+                    <Table aria-label="simple table">
+                      <TableBody>
+                        {info.userAssignment.canvasData.courseId ? (
+                          <TableRow key="courseId">
+                            <TableCell component="th" scope="row">
+                              Course ID
+                            </TableCell>
+                            <TableCell align="right">
+                              {info.userAssignment.canvasData.courseId}
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          <></>
+                        )}
+                        {info.userAssignment.canvasData.assignmentId ? (
+                          <TableRow key="assignmentId">
+                            <TableCell component="th" scope="row">
+                              Assignment ID
+                            </TableCell>
+                            <TableCell align="right">
+                              {info.userAssignment.canvasData.assignmentId}
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          <></>
+                        )}
+                        {info.userAssignment.canvasData.assignmentData ? (
+                          <>
+                            {info.userAssignment.canvasData.assignmentData ? (
+                              <TableRow key="allowedAttempts">
+                                <TableCell component="th" scope="row">
+                                  Allowed Attempts
+                                </TableCell>
+                                <TableCell align="right">
+                                  {info.userAssignment.canvasData.assignmentData
+                                    .allowed_attempts === -1
+                                    ? "Unlimited"
+                                    : info.userAssignment.canvasData
+                                        .assignmentData.allowed_attempts}
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              <></>
+                            )}
+                            {info.userAssignment.canvasData.assignmentData ? (
+                              <TableRow key="possiblePoints">
+                                <TableCell component="th" scope="row">
+                                  Possible Points
+                                </TableCell>
+                                <TableCell align="right">
+                                  {
+                                    info.userAssignment.canvasData
+                                      .assignmentData.possible_points
+                                  }
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              <></>
+                            )}
+                          </>
+                        ) : (
+                          <></>
+                        )}
                       </TableBody>
                     </Table>
                   </TableContainer>
@@ -296,6 +395,18 @@ export default function App() {
             >
               <Fab color="primary" aria-label="add" className={classes.margin}>
                 <QueueMusicIcon />
+              </Fab>
+            </Link>
+          </Tooltip>
+          <Tooltip title="Canvas Assignment API" aria-label="assignment">
+            <Link
+              to={{
+                pathname: "/assignment",
+                search: document.location.search,
+              }}
+            >
+              <Fab color="primary" aria-label="add" className={classes.margin}>
+                <AssignmentIcon />
               </Fab>
             </Link>
           </Tooltip>

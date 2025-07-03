@@ -6,6 +6,7 @@ import LandingPage from "./pages/landingPage";
 import Dashboard from "./pages/dashboard";
 import NameRoles from "./pages/nameRoles";
 import AudioSubmission from "./pages/audioSubmission";
+import Assignment from "./pages/assignment";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 export default function App() {
@@ -36,6 +37,9 @@ export default function App() {
           </Route>
           <Route path="/audio">
             <AudioSubmission />
+          </Route>
+          <Route path="/assignment">
+            <Assignment />
           </Route>
           <Route path="/nolti">
             <LandingPage />
